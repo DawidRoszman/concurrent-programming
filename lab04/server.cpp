@@ -47,8 +47,8 @@ int main() {
     close(fd1);
     int id = clientInput[0] - '0';
     std::string clientFifoPath;
-    for (int i = 2; i < sizeof(clientInput); i++){
-      if(clientInput[i] == '\n'){
+    for (int i = 2; i < sizeof(clientInput); i++) {
+      if (clientInput[i] == '\n') {
         break;
       }
       clientFifoPath += clientInput[i];
@@ -56,10 +56,10 @@ int main() {
     for (int i = 0; i < users.size(); i++) {
       if (users[i].getId() == id) {
         std::string userLastName = users[i].getLastName();
-        std::cout << "User last name: " <<  userLastName << std::endl;
-        std::cout << "Creating FIFO with path: " << clientFifoPath << std::endl;
+        std::cout << "User last name: " << userLastName << std::endl;
+        std::cout << "Creating FIFO with path: " << clientFifoPath.c_str()
+                  << std::endl;
         const char *clientFifo = clientFifoPath.c_str();
-        mkfifo(clientFifo, 0666);
         fd2 = open(clientFifo, O_WRONLY);
         std::cout << "Writing to fifo" << userLastName << std::endl;
         write(fd2, userLastName.c_str(), userLastName.length());
@@ -67,7 +67,6 @@ int main() {
         break;
       }
     }
-
   }
 
   return 0;
