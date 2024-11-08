@@ -32,7 +32,7 @@ int main() {
   std::vector<User> users;
   insertUsers(&users);
   std::cout << users[0].getLastName() << std::endl;
-  int fd1;
+  int fd1, fd2;
   bool running = true;
   const char *serverFifo = "serverfifo";
   mkfifo(serverFifo, 0666);
@@ -52,22 +52,18 @@ int main() {
         break;
       }
       clientFifoPath += clientInput[i];
-      std::cout << clientInput[i] << std::endl;
     }
-    std::cout << clientFifoPath << std::endl;
-    std::cout << id << std::endl;
     for (int i = 0; i < users.size(); i++) {
-      std::cout << i << " " << users[i].getId() << std::endl;
       if (users[i].getId() == id) {
         std::string userLastName = users[i].getLastName();
         std::cout << "User last name: " <<  userLastName << std::endl;
         std::cout << "Creating FIFO with path: " << clientFifoPath << std::endl;
         const char *clientFifo = clientFifoPath.c_str();
         mkfifo(clientFifo, 0666);
-        fd1 = open(clientFifo, O_WRONLY);
+        fd2 = open(clientFifo, O_WRONLY);
         std::cout << "Writing to fifo" << userLastName << std::endl;
-        write(fd1, userLastName.c_str(), userLastName.length());
-        close(fd1);
+        write(fd2, userLastName.c_str(), userLastName.length());
+        close(fd2);
         break;
       }
     }
