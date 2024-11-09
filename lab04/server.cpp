@@ -1,4 +1,6 @@
 #include <cctype>
+#include <csignal>
+#include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
 #include <iostream>
@@ -9,6 +11,15 @@
 #include <vector>
 
 static int currentId = 0;
+
+void handle_sighup(int signum) {
+  std::cout << "Caught signal" << signum << '\n';
+}
+
+void handle_sigusr1(int signum) {
+  std::cout << "Caught SIGUSR1. Exiting program..." << '\n';
+  exit(0);
+}
 
 class User {
 private:
@@ -29,39 +40,47 @@ public:
 void insertUsers(std::vector<User> *users);
 
 int main() {
+
+  signal(SIGHUP, handle_sighup);
+  signal(SIGTERM, handle_sighup);
+  signal(SIGUSR1, handle_sigusr1);
+
   std::vector<User> users;
   insertUsers(&users);
-  std::cout << users[0].getLastName() << std::endl;
   int fd1, fd2;
   bool running = true;
-  const char *serverFifo = "serverfifo";
+  const char *serverFifo = "serverFifo";
   mkfifo(serverFifo, 0666);
-  char clientInput[80];
+  std::cout << "Fifo with name: " << serverFifo << " created" << '\n';
+  std::cout << "Server started" << '\n';
+  
   while (running) {
+    char clientInput[80];
+    int id = 0;
+    std::string clientFifoPath, clientId;
     fd1 = open(serverFifo, O_RDONLY);
     read(fd1, clientInput, sizeof(clientInput));
-    if (!isdigit(clientInput[0])) {
-      std::cout << "Provided input had incorrect format" << std::endl;
+    std::string clientInputStr = clientInput;
+    if (clientInputStr == "") {
+      std::cout << "Client input is empty" << '\n';
       continue;
     }
+    std::cout << "Read client " << clientInputStr << '\n';
     close(fd1);
-    int id = clientInput[0] - '0';
-    std::string clientFifoPath;
-    for (int i = 2; i < sizeof(clientInput); i++) {
-      if (clientInput[i] == '\n') {
-        break;
-      }
-      clientFifoPath += clientInput[i];
-    }
+    sleep(3);
+    clientId = clientInputStr.substr(0, clientInputStr.find(':'));
+    clientFifoPath = clientInputStr.substr(clientInputStr.find(':') + 1);
+    std::cout << clientId << ' ' << clientFifoPath << '\n';
+    id = std::stoi(clientId);
+    const char *clientFifo = clientFifoPath.c_str();
+    fd2 = open(clientFifo, O_WRONLY);
+
     for (int i = 0; i < users.size(); i++) {
       if (users[i].getId() == id) {
         std::string userLastName = users[i].getLastName();
-        std::cout << "User last name: " << userLastName << std::endl;
-        std::cout << "Creating FIFO with path: " << clientFifoPath.c_str()
-                  << std::endl;
-        const char *clientFifo = clientFifoPath.c_str();
-        fd2 = open(clientFifo, O_WRONLY);
-        std::cout << "Writing to fifo" << userLastName << std::endl;
+        std::cout << "User last name: " << userLastName << '\n';
+        std::cout << "Writing to fifo: " << clientFifoPath.c_str() << ' '
+                  << userLastName << '\n';
         write(fd2, userLastName.c_str(), userLastName.length());
         close(fd2);
         break;
