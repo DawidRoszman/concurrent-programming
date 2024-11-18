@@ -13,7 +13,7 @@ int main() {
   mkfifo(path.c_str(), 0666);
   const char *serverFifo = "serverFifo";
   fd1 = open(serverFifo, O_WRONLY);
-  write(fd1, userInput.c_str(), userInput.length());
+  write(fd1, userInput.c_str(), userInput.length()+1);
   close(fd1);
   std::cout << "Waiting for response..." << '\n';
   fd1 = open(path.c_str(), O_RDONLY);

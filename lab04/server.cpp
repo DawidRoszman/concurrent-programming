@@ -11,6 +11,7 @@
 #include <vector>
 
 static int currentId = 0;
+const char *serverFifo = "serverFifo";
 
 void handle_sighup(int signum) {
   std::cout << "Caught signal" << signum << '\n';
@@ -18,6 +19,7 @@ void handle_sighup(int signum) {
 
 void handle_sigusr1(int signum) {
   std::cout << "Caught SIGUSR1. Exiting program..." << '\n';
+  remove(serverFifo);
   exit(0);
 }
 
@@ -49,7 +51,6 @@ int main() {
   insertUsers(&users);
   int fd1, fd2;
   bool running = true;
-  const char *serverFifo = "serverFifo";
   mkfifo(serverFifo, 0666);
   std::cout << "Fifo with name: " << serverFifo << " created" << '\n';
   std::cout << "Server started" << '\n';
@@ -81,7 +82,7 @@ int main() {
         std::cout << "User last name: " << userLastName << '\n';
         std::cout << "Writing to fifo: " << clientFifoPath.c_str() << ' '
                   << userLastName << '\n';
-        write(fd2, userLastName.c_str(), userLastName.length());
+        write(fd2, userLastName.c_str(), userLastName.length()+1);
         close(fd2);
         break;
       }
