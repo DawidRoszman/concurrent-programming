@@ -14,11 +14,11 @@ static int currentId = 0;
 const char *serverFifo = "serverFifo";
 
 void handle_sighup(int signum) {
-  std::cout << "Caught signal" << signum << '\n';
+  std::cout << "Caught signal " << signum << '\n';
 }
 
-void handle_sigusr1(int signum) {
-  std::cout << "Caught SIGUSR1. Exiting program..." << '\n';
+void handle_exitsignal(int signum) {
+  std::cout << "Caught exit signal. Exiting program..." << '\n';
   remove(serverFifo);
   exit(0);
 }
@@ -45,7 +45,8 @@ int main() {
 
   signal(SIGHUP, handle_sighup);
   signal(SIGTERM, handle_sighup);
-  signal(SIGUSR1, handle_sigusr1);
+  signal(SIGUSR1, handle_exitsignal);
+  signal(SIGINT, handle_exitsignal);
 
   std::vector<User> users;
   insertUsers(&users);
