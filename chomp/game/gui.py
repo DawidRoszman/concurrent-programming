@@ -170,7 +170,6 @@ class NetworkChompGUI(tk.Tk):
                 self.buttons[i][j].config(text=text)
                 
     def update_status(self):
-        print(self.game.player_1_turn, self.network.is_host)
         turn = "Your turn" if (self.network.is_host == self.game.player_1_turn) else "Opponent's turn"
         self.status_label.config(text=turn)
         
