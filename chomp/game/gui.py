@@ -61,7 +61,7 @@ class NetworkChompGUI(tk.Tk):
             self.network.close()
         
     def join_game(self):
-        host = simpledialog.askstring("Join Game", "Enter host IP:")
+        host = simpledialog.askstring("Join Game", "Enter host IP:", initialvalue="0.0.0.0")
         port = simpledialog.askinteger("Join Game", "Enter port number:", 
                                      initialvalue=5000)
         if host and port:
@@ -139,12 +139,12 @@ class NetworkChompGUI(tk.Tk):
         if messagebox.askyesno("Restart Game", "Opponent wants to restart. Accept?"):
             first_turn = random.choice([True, False])
             self.network.send_message("restart_accept", {"host_starts": first_turn})
-            self.restart_game(first_turn if self.network.is_host else not first_turn)
+            self.restart_game(first_turn)
         else:
             self.network.send_message("restart_decline", {})
             
     def restart_game(self, host_starts):
-        self.game.start_game(not host_starts)
+        self.game.start_game(host_starts)
         self.update_board()
         self.update_status()
             
@@ -170,6 +170,7 @@ class NetworkChompGUI(tk.Tk):
                 self.buttons[i][j].config(text=text)
                 
     def update_status(self):
+        print(self.game.player_1_turn, self.network.is_host)
         turn = "Your turn" if (self.network.is_host == self.game.player_1_turn) else "Opponent's turn"
         self.status_label.config(text=turn)
         
